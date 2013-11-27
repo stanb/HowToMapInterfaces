@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
+                   namespace="Sample"
+                   assembly="Sample" >
+
+  <class name="IIdentified`1[[System.Guid, mscorlib]]" abstract="true" 
+         entity-name="IDeliverySchedule" >
+    <composite-id name="Id" class="DeliveryScheduleId" >
+      <key-property name="Value" column="Id" />
+    </composite-id>
+  </class>
+
+  <union-subclass name="DeliverySchedule" table="DeliverySchedule" extends="IDeliverySchedule">
+    <component name="SupplierId" class="SupplierId" update="false">
+      <property name="Value" column="SupplierId" not-null="true" update="false" />
+    </component>
+    <property name="Code" not-null="true" update="false" />
+
+    <set name="Stores" cascade="all-delete-orphan" table="DeliveryScheduleStore">
+      <key column="DeliveryScheduleId" foreign-key="none" />
+      <composite-element class="StoreId">
+        <property name="Value" column="StoreId" not-null="true" update="false" />
+      </composite-element>
+    </set>
+
+    <set name="Patterns" cascade="all-delete-orphan" inverse="true" >
+      <key column="ScheduleId" foreign-key="none" />
+      <one-to-many entity-name="IDeliveryPattern" />
+    </set>
+  </union-subclass>
+
+  <class name="IIdentified`1[[System.Guid, mscorlib]]" abstract="true" 
+         table="DeliveryPattern" entity-name="IDeliveryPattern" >
+    <id name="Id" generator="guid" />
+    <discriminator column="Type" />
+  </class>
+
+  <subclass name="WeeklyDeliveryPattern" discriminator-value="Weekly" extends="IDeliveryPattern">
+    <many-to-one name="Schedule" entity-name="IDeliverySchedule" foreign-key="none" column="ScheduleId" />
+    <property name="Code" />
+    <property name="FirstDate" />
+  </subclass>
+
+  <subclass name="MonthlyDeliveryPattern" discriminator-value="Monthly" extends="IDeliveryPattern">
+    <many-to-one name="Schedule" entity-name="IDeliverySchedule" foreign-key="none" column="ScheduleId" />
+    <property name="Code" />
+    <property name="FirstDate" />
+  </subclass>
+  
+
+</hibernate-mapping>
